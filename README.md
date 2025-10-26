@@ -96,8 +96,16 @@ kubectl apply -f k8s/
 # Verify pods & services
 kubectl get pods
 kubectl get services
-'''
+# Scale Replicas
 
+kubectl scale deployment ticket-booking-flask --replicas=3
+
+
+# Delete Deployment
+
+kubectl delete -f k8s/
+
+```
 
 # 🔁 Continuous Integration (Jenkins)
 
