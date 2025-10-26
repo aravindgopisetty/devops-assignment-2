@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kommalas — Movie Ticket Booking</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <h1>Kommalas</h1>
+      <p class="tagline">Book. Watch. Celebrate.</p>
+      <p class="lead">Fast bookings, clear seating, and instant confirmations — all in three simple steps.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#showtimes">Browse Showtimes</a>
+        <a class="btn" href="#booking">Quick Book</a>
+      </div>
+
+      <div class="hero-sub">
+        <div class="pill">Now showing • Telugu • English • Hindi • Tamil</div>
+  <div class="hero-note">No payment required — bookings are stored locally.</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="features" class="card">
+      <h2>Why Kommalas?</h2>
+      <ul class="features">
+        <li>Real-time showtimes and seat availability</li>
+        <li>Simple seat selection and secure checkout</li>
+        <li>Instant booking confirmation and QR entry code</li>
+        <li>Mobile-friendly and accessible UI</li>
+      </ul>
+    </section>
+
+    <section id="how" class="card">
+      <h2>How it works</h2>
+      <ol>
+        <li>Find a movie and time that suits you.</li>
+        <li>Choose your seats and enter attendee details.</li>
+        <li>Pay securely and receive an instant confirmation.</li>
+      </ol>
+    </section>
+
+    <section id="showtimes" class="card">
+      <h2>Showtimes — Sample Listings</h2>
+  <p class="muted">These sample listings are grouped by language. Click a time to quickly pre-fill the booking form.</p>
+
+      <div class="show-controls">
+        <input id="search" placeholder="Search movies or languages" />
+        <div id="lang-filters" class="lang-filters"></div>
+      </div>
+
+      <div id="showtimes-grid" class="list-grid" aria-live="polite"></div>
+    </section>
+
+    <section id="booking" class="card">
+      <h2>Quick Book</h2>
+  <p class="muted">Bookings are stored locally in your browser (no server).</p>
+
+      <form id="booking-form" class="form-grid" onsubmit="return submitBooking(event)">
+        <label for="movie">Movie</label>
+        <select id="movie" required></select>
+
+        <label for="name">Your name</label>
+        <input id="name" type="text" placeholder="Full name" required />
+
+        <label for="seats">Seats</label>
+        <input id="seats" type="number" min="1" value="1" required />
+
+        <label for="time">Showtime</label>
+        <select id="time" required></select>
+
+        <div class="form-actions">
+          <button class="btn primary" type="submit">Reserve seats</button>
+          <button class="btn" type="button" onclick="clearBookings()">Clear bookings</button>
+        </div>
+      </form>
+
+      <div id="booking-result" aria-live="polite"></div>
+
+      <h3>Your bookings</h3>
+      <div id="bookings-list">No bookings yet — reserve your first seat!</div>
+    </section>
+
+    <section id="contact" class="card">
+      <h2>Trust & Accessibility</h2>
+  <p>Kommalas supports keyboard navigation and screen readers. Payments are secure; we never store your card details on this site.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">© <span id="year"></span> Kommalas — Terms • Privacy • Help</div>
+  </footer>
+
+    <!-- Confirmation modal -->
+    <div id="confirm-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="modal-backdrop" onclick="hideConfirmModal()"></div>
+      <div class="modal-panel" role="document">
+        <h3>Confirm your booking</h3>
+        <p><strong>Movie:</strong> <span id="modal-movie"></span></p>
+        <p><strong>Showtime:</strong> <span id="modal-time"></span></p>
+        <p><strong>Seats:</strong> <span id="modal-seats"></span></p>
+        <p><strong>Name:</strong> <span id="modal-name"></span></p>
+        <div class="modal-actions">
+          <button class="btn" type="button" onclick="hideConfirmModal()">Cancel</button>
+          <button class="btn primary" type="button" onclick="finalizeBooking()">Confirm & Pay</button>
+        </div>
+      </div>
+    </div>
+
+<script>
+// Sample data (will try to load from backend if available)
+let movies = [
+  { id: 1, title: 'Sundaripuram', lang: 'Telugu', times: ['11:00','14:30','19:00'] },
+  { id: 2, title: 'Racing Hearts', lang: 'Telugu', times: ['12:45','16:00','21:15'] },
+  { id: 3, title: 'Monsoon Letters', lang: 'Telugu', times: ['10:30','18:00'] },
+  { id: 4, title: 'Midnight Signal', lang: 'English', times: ['13:00','17:20','22:00'] },
+  { id: 5, title: 'Starbound', lang: 'English', times: ['11:15','16:30','20:45'] },
+  { id: 6, title: 'Laugh Track', lang: 'English', times: ['10:00','14:00','18:00'] },
+  { id: 7, title: 'Dil Se Door', lang: 'Hindi', times: ['11:30','15:45','20:00'] },
+  { id: 8, title: 'City Lights', lang: 'Hindi', times: ['13:45','18:15'] },
+  { id: 9, title: 'Operation Falcon', lang: 'Hindi', times: ['16:00','21:30'] },
+  { id: 10, title: 'Nadodigal Returns', lang: 'Tamil', times: ['12:30','19:00'] },
+  { id: 11, title: 'Ocean Blue', lang: 'Tamil', times: ['14:15','20:45'] }
+];
+
+function $(s){ return document.querySelector(s); }
+function $all(s){ return document.querySelectorAll(s); }
+
+function renderShowtimes(){
+  const container = document.getElementById('showtimes-grid');
+  // group by language
+  const byLang = movies.reduce((acc,m)=>{ (acc[m.lang]||(acc[m.lang]=[])).push(m); return acc },{});
+  container.innerHTML = '';
+  Object.keys(byLang).forEach(lang=>{
+    const col = document.createElement('div');
+    const h = document.createElement('h3'); h.textContent = lang; col.appendChild(h);
+      byLang[lang].forEach(m=>{
+      const item = document.createElement('div'); item.className='show-item';
+      const title = document.createElement('div'); title.className='show-title'; title.innerHTML = `<strong>${m.title}</strong>`;
+      const times = document.createElement('div'); times.className='show-times';
+      m.times.forEach(t=>{
+        const avail = seatsAvailable(m.id,t);
+        const b = document.createElement('button');
+        b.type='button'; b.className='time-btn'; b.innerHTML = `${t} <span class="seat-badge">${avail} seats</span>`;
+        b.onclick = ()=> bookNow(m.id,t);
+        times.appendChild(b);
+      });
+      // rating (fake) and short descriptor
+      const meta = document.createElement('div'); meta.className='show-meta'; meta.innerHTML = `★ ${(3 + (m.id % 3))}.0`;
+      item.appendChild(title); item.appendChild(meta); item.appendChild(times);
+      col.appendChild(item);
+    });
+    container.appendChild(col);
+  });
+}
+
+function renderLangFilters(){
+  const container = document.getElementById('lang-filters');
+  const langs = [...new Set(movies.map(m=>m.lang))];
+  container.innerHTML = '';
+  const allBtn = document.createElement('button'); allBtn.className='lang-btn active'; allBtn.textContent='All';
+  allBtn.onclick = ()=>{ filterShowtimes(null); setActiveLang(null); };
+  container.appendChild(allBtn);
+  langs.forEach(l=>{
+    const b = document.createElement('button'); b.className='lang-btn'; b.textContent = l;
+    b.onclick = ()=>{ filterShowtimes(l); setActiveLang(l); };
+    container.appendChild(b);
+  });
+}
+
+function setActiveLang(lang){
+  document.querySelectorAll('.lang-btn').forEach(b=> b.classList.toggle('active', b.textContent===lang || (lang===null && b.textContent==='All')));
+}
+
+function filterShowtimes(lang){
+  const grid = document.getElementById('showtimes-grid');
+  const search = (document.getElementById('search').value||'').toLowerCase();
+  // filter movies array
+  const filtered = movies.filter(m=>{
+    if(lang && m.lang!==lang) return false;
+    if(search && !(m.title.toLowerCase().includes(search) || m.lang.toLowerCase().includes(search))) return false;
+    return true;
+  });
+  // render grouped
+  const byLang = filtered.reduce((acc,m)=>{ (acc[m.lang]||(acc[m.lang]=[])).push(m); return acc },{});
+  grid.innerHTML = '';
+  Object.keys(byLang).forEach(l=>{
+    const col = document.createElement('div');
+    const h = document.createElement('h3'); h.textContent = l; col.appendChild(h);
+    byLang[l].forEach(m=>{
+      const item = document.createElement('div'); item.className='show-item fade-in';
+      const title = document.createElement('div'); title.className='show-title'; title.innerHTML = `<strong>${m.title}</strong>`;
+      const meta = document.createElement('div'); meta.className='show-meta'; meta.innerHTML = `★ ${(3 + (m.id % 3))}.0`;
+      const times = document.createElement('div'); times.className='show-times';
+      m.times.forEach(t=>{
+        const avail = seatsAvailable(m.id,t);
+        const b = document.createElement('button'); b.type='button'; b.className='time-btn'; b.innerHTML = `${t} <span class="seat-badge">${avail} seats</span>`;
+        b.onclick = ()=> bookNow(m.id,t);
+        times.appendChild(b);
+      });
+      item.appendChild(title); item.appendChild(meta); item.appendChild(times);
+      col.appendChild(item);
+    });
+    grid.appendChild(col);
+  });
+}
+
+function bookNow(movieId, time){
+  // prefill booking form and focus
+  $('#movie').value = movieId;
+  updateTimes();
+  $('#time').value = time;
+  $('#name').focus();
+  // scroll to booking section and briefly highlight
+  const bk = document.getElementById('booking'); bk.scrollIntoView({behavior:'smooth', block:'center'});
+  bk.classList.add('highlight'); setTimeout(()=>bk.classList.remove('highlight'), 1500);
+}
+
+// Mock deterministic seat availability per movie+time (stable during session)
+function seatsAvailable(movieId, time){
+  // simple hash to generate pseudo-random but stable value
+  const key = `${movieId}:${time}`;
+  let h = 0;
+  for(let i=0;i<key.length;i++) h = (h<<5) - h + key.charCodeAt(i);
+  h = Math.abs(h);
+  return 5 + (h % 16); // 5..20 seats
+}
+
+// Modal handling: show confirmation modal before saving
+function showConfirmModal(details){
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('modal-movie').textContent = details.movie + ' ('+details.lang+')';
+  document.getElementById('modal-time').textContent = details.time;
+  document.getElementById('modal-seats').textContent = details.seats;
+  document.getElementById('modal-name').textContent = details.name;
+  modal.classList.add('open');
+  // store pending details
+  modal._pending = details;
+}
+
+function hideConfirmModal(){
+  const modal = document.getElementById('confirm-modal');
+  modal.classList.remove('open');
+  modal._pending = null;
+}
+
+async function finalizeBooking(){
+  const modal = document.getElementById('confirm-modal');
+  const details = modal._pending;
+  if(!details) return hideConfirmModal();
+  // try server
+  try{
+    const res = await fetch('/api/book', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(details) });
+    if(res.ok){
+      const booking = await res.json();
+      $('#booking-result').textContent = `Booked! ID=${booking.id} — check your bookings below.`;
+      $('#name').value=''; $('#seats').value=1;
+      hideConfirmModal();
+      renderBookings();
+      launchConfetti();
+      return;
+    }
+    throw new Error('API failed');
+  }catch(e){
+    // fallback: save locally
+    const list = await loadBookings();
+    const id = (list.length?list[list.length-1].id:0)+1;
+    const booking = { id, movie: details.movie, lang: details.lang, time: details.time, seats: details.seats, name: details.name, createdAt: new Date().toISOString() };
+    list.push(booking);
+    await saveLocalBookings(list);
+    $('#booking-result').textContent = `Booked locally! ID=${booking.id} — check your bookings below.`;
+    $('#name').value=''; $('#seats').value=1;
+    hideConfirmModal();
+    renderBookings();
+    launchConfetti();
+  }
+}
+
+// small confetti effect (creates DOM elements briefly)
+function launchConfetti(){
+  const container = document.createElement('div'); container.className='confetti'; document.body.appendChild(container);
+  const colors = ['#ffd166','#06d6a0','#118ab2','#ef476f','#ffd166'];
+  const pieces = 24;
+  for(let i=0;i<pieces;i++){
+    const p = document.createElement('div'); p.className='confetti-piece'; p.style.background = colors[i%colors.length];
+    const left = Math.random()*60 + 20; p.style.left = left + '%'; p.style.top = '60%';
+    container.appendChild(p);
+    // animate with JS
+    const endY = Math.random()*-500 - 200;
+    const endX = (Math.random()-0.5)*500;
+    p.animate([
+      { transform:`translate(0,0) rotate(${Math.random()*360}deg)`, opacity:1 },
+      { transform:`translate(${endX}px, ${endY}px) rotate(${Math.random()*720}deg)`, opacity:0 }
+    ], { duration: 1800 + Math.random()*800, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+  setTimeout(()=>{ document.body.querySelectorAll('.confetti').forEach(n=>n.remove()) }, 2600);
+}
+
+function populateMovies(){
+  const sel = $('#movie');
+  const timeSel = $('#time');
+  sel.innerHTML = '';
+  movies.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = `${m.title} — ${m.lang}`;
+    sel.appendChild(opt);
+  });
+  // set times for first movie
+  updateTimes();
+}
+
+function updateTimes(){
+  const movieId = Number($('#movie').value);
+  const m = movies.find(x=>x.id===movieId);
+  const timeSel = $('#time');
+  timeSel.innerHTML = '';
+  m.times.forEach(t=>{
+    const o=document.createElement('option'); o.value=t; o.textContent=t; timeSel.appendChild(o);
+  })
+}
+
+$('#movie').addEventListener('change', updateTimes);
+
+// Bookings persistence: prefer backend API, fallback to localStorage
+async function loadBookings(){
+  try{
+    const res = await fetch('/api/bookings');
+    if(res.ok) return await res.json();
+    throw new Error('API error');
+  }catch(e){
+    const raw = localStorage.getItem('kommalas_bookings');
+    return raw ? JSON.parse(raw) : [];
+  }
+}
+
+async function saveLocalBookings(list){
+  localStorage.setItem('kommalas_bookings', JSON.stringify(list));
+}
+
+async function renderBookings(){
+  const list = await loadBookings();
+  const el = $('#bookings-list');
+  if(!list.length){ el.textContent = 'No bookings yet — reserve your first seat!'; return; }
+  el.innerHTML = '';
+  list.forEach(b=>{
+    const d = document.createElement('div'); d.className='booking-item';
+    d.innerHTML = `#${b.id} — <strong>${b.movie}</strong> (${b.lang}) @ ${b.time} — ${b.seats} seat(s) — ${b.name}`;
+    el.appendChild(d);
+  })
+}
+
+function submitBooking(e){
+  e.preventDefault();
+  const movieId = Number($('#movie').value);
+  const movie = movies.find(m=>m.id===movieId);
+  const name = $('#name').value.trim();
+  const seats = Number($('#seats').value);
+  const time = $('#time').value;
+  if(!name || seats<1){ alert('Please enter name and seats'); return false; }
+  // show confirmation modal with booking details
+  showConfirmModal({ movie: movie.title, lang: movie.lang, time, seats, name });
+  return false;
+}
+
+async function clearBookings(){
+  if(!confirm('Clear all local bookings?')) return;
+  try{
+    const res = await fetch('/api/bookings', { method: 'DELETE' });
+    if(res.ok){
+      $('#booking-result').textContent='Bookings cleared.';
+      renderBookings();
+      return;
+    }
+  }catch(e){}
+  // fallback
+  localStorage.removeItem('kommalas_bookings'); renderBookings(); $('#booking-result').textContent='Bookings cleared.';
+}
+
+// init
+// Initialization: try to load movies from backend first
+async function init(){
+  try{
+    const res = await fetch('/api/movies');
+    if(res.ok){ movies = await res.json(); }
+  }catch(e){/* keep client-side movies */}
+  populateMovies(); renderLangFilters(); renderShowtimes(); await renderBookings(); document.getElementById('year').textContent = new Date().getFullYear();
+  // attach search
+  document.getElementById('search').addEventListener('input', ()=> filterShowtimes(null));
+}
+
+init();
+</script>
+</body>
+</html>
