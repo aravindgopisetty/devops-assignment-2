@@ -46,3 +46,15 @@ Kubernetes for deployment and scaling
 <img width="1919" height="1029" alt="Screenshot 2025-10-26 201943" src="https://github.com/user-attachments/assets/851031a9-e2b4-4523-b37b-cc18543754e3" />
 <img width="1902" height="1013" alt="Screenshot 2025-10-26 201958" src="https://github.com/user-attachments/assets/14624c9d-8852-4f37-b33f-71a93c8b1f06" />
 <img width="1909" height="916" alt="Screenshot 2025-10-26 202014" src="https://github.com/user-attachments/assets/be68b9f7-56ec-4f39-a566-659e145a1270" />
+
+1.🧭 Version Control and Branching (Git)
+
+Effective version control is the backbone of this DevOps workflow. Git ensures that every code change is tracked, collaborative development is smooth, and rollbacks are simple if needed.
+
+🪄 Process:
+
+A local Git repository is initialized to manage the source code.
+
+The repository is connected to GitHub for remote collaboration and backup.
+
+The GitFlow branching strategy is used to maintain clean and stable code throughout the development lifecycle.
