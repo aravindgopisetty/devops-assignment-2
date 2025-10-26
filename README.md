@@ -58,3 +58,5 @@ A local Git repository is initialized to manage the source code.
 The repository is connected to GitHub for remote collaboration and backup.
 
 The GitFlow branching strategy is used to maintain clean and stable code throughout the development lifecycle.
+<img width="1919" height="1079" alt="Screenshot 2025-10-26 202711" src="https://github.com/user-attachments/assets/7be10c7b-6c75-4ef4-8e1e-044f8fdcc57d" />
+
