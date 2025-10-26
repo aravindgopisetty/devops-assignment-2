@@ -84,7 +84,9 @@ The image is tagged and pushed to Docker Hub, acting as the central image regist
 
 The containerized app can be deployed anywhere — local machine, cloud, or Kubernetes cluster.
 
-# ☸️ Kubernetes Deployment
+## ☸️ Kubernetes Deployment
+
+```bash
 # Start Minikube
 minikube start
 
@@ -94,8 +96,7 @@ kubectl apply -f k8s/
 # Verify pods & services
 kubectl get pods
 kubectl get services
-kubectl scale deployment ticket-booking-flask --replicas=3
-kubectl delete -f k8s/
+'''
 
 
 # 🔁 Continuous Integration (Jenkins)
