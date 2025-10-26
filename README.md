@@ -1,4 +1,4 @@
-#🚀 Overview of Devops assignment 2
+###🚀 Overview of Devops assignment 2
 
 This project showcases the end-to-end automation of a modern DevOps pipeline for a web-based application.
 
