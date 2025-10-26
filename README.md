@@ -59,6 +59,7 @@ The repository is connected to GitHub for remote collaboration and backup.
 
 The GitFlow branching strategy is used to maintain clean and stable code throughout the development lifecycle.
 <img width="1919" height="1079" alt="Screenshot 2025-10-26 202711" src="https://github.com/user-attachments/assets/7be10c7b-6c75-4ef4-8e1e-044f8fdcc57d" />
+
 # 🐳 Containerization (Docker)
 
 Containerization ensures that the application runs consistently across all environments by packaging the code, dependencies, and configuration into a lightweight container image.
@@ -82,104 +83,27 @@ Using Docker, the application is packaged into an image.
 The image is tagged and pushed to Docker Hub, acting as the central image registry.
 
 The containerized app can be deployed anywhere — local machine, cloud, or Kubernetes cluster.
+
 # ☸️ Kubernetes Deployment
-Start Minikube
+# Start Minikube
 minikube start
 
- Apply manifests
+# Apply manifests
 kubectl apply -f k8s/
 
-Verify pods & services
+# Verify pods & services
 kubectl get pods
 kubectl get services
-Scale replicas:
-
 kubectl scale deployment ticket-booking-flask --replicas=3
-Delete deployment:
-
 kubectl delete -f k8s/
+
+
 # 🔁 Continuous Integration (Jenkins)
 
 Jenkins is the backbone of the automated CI/CD pipeline. It continuously integrates new code, builds the application, and deploys it to the Kubernetes cluster — all without manual intervention.
 
 The entire process is defined and managed through the Jenkins pipeline (Jenkinsfile).
 
-## 🧰 Jenkins Setup Steps
-
-Install Jenkins
-
-Jenkins can be installed locally or using its official Docker image.
-
-Install Required Plugins
-
-Go to Manage Jenkins → Manage Plugins and install:
-
-Docker Pipeline
-
-Kubernetes CLI
-
-Credentials Binding
-
-Add Credentials (Manage Jenkins → Manage Credentials)
-
-Docker Hub
-
-Kind: Username with password
-
-ID: docker-hub-cred-id (must match Jenkinsfile)
-
-Username: Your Docker Hub username
-
-Password: Your Docker Hub password or access token
-
-Kubernetes Config
-
-Kind: Secret file
-
-ID: kubeconfig-file (must match Jenkinsfile)
-
-File: Upload your local kubeconfig (e.g., C:\Users\<YOUR_USER>\.kube\config)
-
-🏗️ Pipeline Stages (Defined in Jenkinsfile)
-1. Source Code Checkout
-
-Jenkins automatically fetches the latest code from the develop branch using Pipeline script from SCM.
-
-This ensures that every commit is immediately built and tested.
-
-2. Docker Image Build
-
-Executes docker build to package the application into an image.
-
-The image is tagged with both:
-
-A unique build number (e.g., username/ticket-app:16)
-
-The latest tag for easy deployment.
-
-3. Push Image to Docker Hub
-
-Jenkins logs in to Docker Hub using the stored credentials (docker-hub-cred-id).
-
-Both the build-specific and latest images are pushed to the repository.
-
-4. Deploy to Kubernetes
-
-Jenkins authenticates with the Kubernetes cluster using the kubeconfig-file secret.
-
-The image tag in deployment.yaml is dynamically updated to reflect the new build.
-
-The pipeline applies the updated manifests to the cluster using:
-
-kubectl apply -f deployment.tmp.yaml
-kubectl apply -f service.yaml
-
-
-TLS verification is skipped for local clusters (optional).
-
-Finally, Jenkins waits for the deployment to complete successfully with:
-
-kubectl rollout status deployment/<deployment-name>
 <img width="1609" height="760" alt="Screenshot 2025-10-26 203146" src="https://github.com/user-attachments/assets/a5ed4d2d-d015-40a5-b530-18253a227667" />
 
 
