@@ -1,7 +1,7 @@
 {
-  "name": "kommalas-backend",
+  "name": "aravind-backend",
   "version": "0.1.0",
-  "description": "Kommalas demo backend to serve static frontend and provide booking APIs",
+  "description": "aravind demo backend to serve static frontend and provide booking APIs",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
