@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('docker-hub-cred')
-        DOCKER_IMAGE = 'laasyakomm123/devops-assignment-2-app'
+        DOCKER_IMAGE = 'aravindgopisetty123/devops-assignment-2-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         KUBECONFIG = credentials('kubeconfig')
     }
@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/laasyakomm123/DevOps-Assignment-2.git'
+                    url: 'https://github.com/aravindgopisetty123/DevOps-Assignment-2.git'
                 bat 'echo Code checked out successfully'
             }
         }
@@ -94,7 +94,7 @@ pipeline {
                 emailext (
                     subject: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
                     body: "The Jenkins build ${env.BUILD_URL} completed successfully.",
-                    to: "laasyakomm123@example.com"
+                    to: "aravindgopisetty123@example.com"
                 )
             }
         }
@@ -104,7 +104,7 @@ pipeline {
                 emailext (
                     subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
                     body: "The Jenkins build ${env.BUILD_URL} failed. Please check the console output.",
-                    to: "laasyakomm123@example.com"
+                    to: "aravindgopisetty123@example.com"
                 )
             }
         }
